@@ -1,0 +1,12 @@
+extends layout
+
+block content
+  h2 Login
+  form(method='POST', action='/users/login')
+    .mb-3
+      label.form-label(for="username") Username:
+      input.form-control(type="text", id="username", name="username", required)
+    .mb-3
+      label.form-label(for="password") Password:
+      input.form-control(type="password", id="password", name="password", required)
+    button.btn.btn-primary(type="submit") Login

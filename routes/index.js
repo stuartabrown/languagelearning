@@ -18,6 +18,18 @@ router.get("/", function (req, res, next) {
   });
 });
 
+// routes/index.js
+// ... other imports ...
+
+router.get("/register", (req, res) => {
+  res.render("register");
+});
+
+router.get("/login", (req, res) => {
+  res.render("login");
+});
+
+// ... rest of your routes ...
 /* POST generate content request */
 router.post("/generate", async function (req, res, next) {
   const { language, prompt } = req.body;

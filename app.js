@@ -31,6 +31,68 @@ if (!mongoDB) {
   mongoDB += dbName;
 }
 
+const session = require("express-session");
+const flash = require("connect-flash");
+// ... other requires ...
+const passport = require("passport");
+const LocalStrategy = require("passport-local").Strategy;
+// ... other imports ...
+const User = require("./models/User");
+
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "your-secret-key", // Use a strong secret key from environment variables
+    resave: false,
+    saveUninitialized: false,
+    cookie: { secure: process.env.NODE_ENV === "production" }, // Set cookie to secure in production
+  })
+);
+app.use(flash()); // Add this line to use connect-flash
+
+// Passport.js middleware (must be after mounting the usersRouter)
+app.use(passport.initialize());
+app.use(passport.session());
+
+app.use((req, res, next) => {
+  res.locals.user = req.user; // Make user available in res.locals
+  res.locals.messages = req.flash(); // Make flash messages available
+  next();
+});
+
+passport.use(
+  new LocalStrategy(
+    { usernameField: "username" },
+    async (username, password, done) => {
+      try {
+        const user = await User.findOne({ username });
+        if (!user) {
+          return done(null, false, { message: "Incorrect username." });
+        }
+        const isMatch = await user.comparePassword(password);
+        if (!isMatch) {
+          return done(null, false, { message: "Incorrect password." });
+        }
+        return done(null, user);
+      } catch (error) {
+        return done(error);
+      }
+    }
+  )
+);
+
+passport.serializeUser((user, done) => {
+  done(null, user.id);
+});
+
+passport.deserializeUser(async (id, done) => {
+  try {
+    const user = await User.findById(id);
+    done(null, user);
+  } catch (error) {
+    done(error);
+  }
+});
+
 // Connect to MongoDB
 mongoose.connect(mongoDB, {
   useNewUrlParser: true,
@@ -55,6 +117,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
+const usersRouter = require("./routes/users");
+app.use("/users", usersRouter); // Mount the users router at /users
 
 // --- Routes ---
 app.use("/", indexRouter);
