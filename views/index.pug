@@ -1,0 +1,17 @@
+extends layout
+
+block content
+    h1= title
+    form(method='POST', action='/generate')
+      label(for='language') Language:
+      select(name='language', id='language')
+        each language in languageOptions
+          option(value=language)= language
+      br
+      label(for='prompt') Prompt:
+      textarea(name='prompt', id='prompt', rows='5', cols='50', required)
+      br
+      button(type='submit') Generate Content
+    a(href="/history") View Content History
+
+

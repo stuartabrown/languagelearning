@@ -1,0 +1,10 @@
+extends layout
+
+block content
+    h1= title
+    p Language: #{language}
+    p Prompt: #{prompt}
+    h2 Response:
+    pre #{response}
+    a(href="/") Back to Form
+    a(href="/history") View Content History

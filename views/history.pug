@@ -1,0 +1,15 @@
+extends layout
+
+block content
+    h1=title
+    if history.length > 0
+      each item in history
+        div.history-item
+          p Language: #{item.language}
+          p Prompt: #{item.prompt}
+          p Response: #{item.response}
+          p Timestamp: #{item.timestamp}
+          hr
+    else
+      p No content generated yet.
+    a(href="/") Back to Form
