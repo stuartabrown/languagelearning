@@ -41,7 +41,7 @@ router.post(
 );
 
 // Logout Route
-router.get("/users/logout", (req, res) => {
+router.get("/logout", (req, res) => {
   req.logout((err) => {
     if (err) {
       return next(err);
