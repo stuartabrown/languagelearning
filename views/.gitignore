@@ -1,43 +1,8 @@
-# Node.js
+# Dependency directories
 node_modules/
-npm-debug.log
-yarn-error.log
-.npmrc
 
-# OS-specific files
-.DS_Store
-Thumbs.db
+# Optional npm cache directory
+.npm
 
-# Environment variables
+# dotenv environment variables file
 .env
-
-# Logs
-*.log
-
-# Test files
-*.test.js
-*.spec.js
-
-# Temporary files
-tmp/
-*.tmp
-
-# Build output
-dist/
-build/
-out/
-
-# IDE files
-.idea/
-*.suo
-*.csproj
-*.sln
-*.user
-
-# Package-lock files
-package-lock.json
-yarn.lock
-
-# Other temporary files
-*.log
-coverage/
