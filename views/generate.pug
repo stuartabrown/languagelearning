@@ -1,35 +1,44 @@
 extends layout
 
 block content
-  h2 Generate Language Learning Content
-  form.needs-validation(method='POST', action='/generate', novalidate)
-    .mb-3
-      label.form-label(for="language") Language:
-      select.form-select(name="language", id="language", required)
-        each language in languageOptions
-          option(value=language)= language
-      div.invalid-feedback Please select a language.
-    .mb-3
-      label.form-label(for="prompt") Prompt:
-      textarea.form-control(name="prompt", id="prompt", rows="5", required)
-      div.invalid-feedback Please enter a prompt.
-    button.btn.btn-primary(type="submit") Generate Content
-    script.
-      (() => {
-        'use strict'
+  h2 Welcome #{username}.
+  p This is where you will generate content.
 
-        // Fetch all the forms we want to apply custom Bootstrap validation styles to
-        const forms = document.querySelectorAll('.needs-validation')
 
-        // Loop over them and prevent submission
-        Array.from(forms).forEach(form => {
-          form.addEventListener('submit', event => {
-            if (!form.checkValidity()) {
-              event.preventDefault()
-              event.stopPropagation()
-            }
 
-            form.classList.add('was-validated')
-          }, false)
-        })
-      })()
+
+//- extends layout
+
+//- block content
+//-   h2 Generate Language Learning Content
+//-   form.needs-validation(method='POST', action='/generate', novalidate)
+//-     .mb-3
+//-       label.form-label(for="language") Language:
+//-       select.form-select(name="language", id="language", required)
+//-         each language in languageOptions
+//-           option(value=language)= language
+//-       div.invalid-feedback Please select a language.
+//-     .mb-3
+//-       label.form-label(for="prompt") Prompt:
+//-       textarea.form-control(name="prompt", id="prompt", rows="5", required)
+//-       div.invalid-feedback Please enter a prompt.
+//-     button.btn.btn-primary(type="submit") Generate Content
+//-     script.
+//-       (() => {
+//-         'use strict'
+
+//-         // Fetch all the forms we want to apply custom Bootstrap validation styles to
+//-         const forms = document.querySelectorAll('.needs-validation')
+
+//-         // Loop over them and prevent submission
+//-         Array.from(forms).forEach(form => {
+//-           form.addEventListener('submit', event => {
+//-             if (!form.checkValidity()) {
+//-               event.preventDefault()
+//-               event.stopPropagation()
+//-             }
+
+//-             form.classList.add('was-validated')
+//-           }, false)
+//-         })
+//-       })()
