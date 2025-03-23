@@ -38,6 +38,7 @@ router.get("/:username", (req, res) => {
   res.render("user", { username });
 }); // ... rest of your routes ...
 
+// GET /:username/generate - Render the generate form
 router.get("/:username/generate", (req, res) => {
   const username = req.params.username;
 
@@ -46,35 +47,50 @@ router.get("/:username/generate", (req, res) => {
     return res.redirect("/users/login"); // Redirect to login if unauthorized
   }
 
-  res.render("generate", { username });
-}); /* POST generate content request */
-router.post("/generate", async function (req, res, next) {
+  // Render the generate form with language options
+  res.render("generate", {
+    username,
+    languageOptions: ["English", "Italian", "French"],
+  });
+});
+
+// POST /:username/generate - Handle form submission and interact with Google Gemini API
+router.post("/:username/generate", async (req, res, next) => {
+  const username = req.params.username;
+
+  // Ensure the user is logged in and the username matches
+  if (!req.user || req.user.username !== username) {
+    return res.redirect("/users/login"); // Redirect to login if unauthorized
+  }
+
   const { language, prompt } = req.body;
 
   try {
-    const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-pro-002",
-    });
+    // Interact with Google Gemini API
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro-002" });
     const result = await model.generateContent(prompt);
     const responseText = result.response.text();
 
     // Store the request and response in the database
     const newContent = new Content({
+      username,
       language,
       prompt,
       response: responseText,
     });
     await newContent.save();
 
+    // Render the response page
     res.render("response", {
       title: "Generated Content",
-      language: language,
-      prompt: prompt,
+      username,
+      language,
+      prompt,
       response: responseText,
     });
   } catch (error) {
     console.error("Error generating content:", error);
-    next(error); // Pass error to error handler
+    next(error);
   }
 });
 
