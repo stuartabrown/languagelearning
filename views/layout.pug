@@ -11,6 +11,7 @@ html(lang="en")
       header.p-3.bg-dark.text-white.text-center
         h1 My Language Learning App
         if user
+          a.btn.btn-light(href=`/${user.username}/generate`) Generate Content
           a.btn.btn-light(href='/users/logout') Logout
         else
           a.btn.btn-light(href='/users/login') Login
@@ -24,6 +25,9 @@ html(lang="en")
             ul.navbar-nav.ms-auto
               li.nav-item
                 a.nav-link(href="/") Home
+              if user
+                li.nav-item
+                  a.nav-link(href=`/${user.username}/generate`) Generate Content
               li.nav-item
                 a.nav-link(href="/history") History
       main.p-3

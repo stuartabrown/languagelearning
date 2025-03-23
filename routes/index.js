@@ -71,12 +71,16 @@ router.post("/:username/generate", async (req, res, next) => {
     const result = await model.generateContent(prompt);
     const responseText = result.response.text();
 
-    // Store the request and response in the database
+    // Store the request and response in the database, including user details
     const newContent = new Content({
-      username,
       language,
       prompt,
       response: responseText,
+      user: {
+        id: req.user._id, // Store the user's ID
+        username: req.user.username, // Store the username
+        email: req.user.email || null, // Store the email (if available)
+      },
     });
     await newContent.save();
 

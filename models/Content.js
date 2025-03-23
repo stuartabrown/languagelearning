@@ -7,6 +7,11 @@ const ContentSchema = new Schema({
   prompt: { type: String, required: true },
   response: { type: String, required: true },
   timestamp: { type: Date, default: Date.now },
+  user: {
+    id: { type: Schema.Types.ObjectId, required: true, ref: "User" }, // Reference to the User model
+    username: { type: String, required: true }, // Store the username
+    email: { type: String }, // Optionally store the email
+  },
 });
 
 module.exports = mongoose.model("Content", ContentSchema);
