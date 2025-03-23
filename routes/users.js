@@ -34,10 +34,13 @@ router.get("/login", (req, res) => {
 router.post(
   "/login",
   passport.authenticate("local", {
-    successRedirect: "/",
     failureRedirect: "/users/login",
     failureFlash: true,
-  })
+  }),
+  (req, res) => {
+    // Redirect to the dynamic route based on the logged-in user's username
+    res.redirect(`/${req.user.username}`);
+  }
 );
 
 // Logout Route

@@ -29,7 +29,14 @@ router.get("/login", (req, res) => {
   res.render("login");
 });
 
-// ... rest of your routes ...
+router.get("/:username", (req, res) => {
+  const username = req.params.username;
+  if (!req.user || req.user.username !== username) {
+    // Prevent unauthorized access to other users' pages
+    return res.redirect("/users/login");
+  }
+  res.render("user", { username });
+}); // ... rest of your routes ...
 /* POST generate content request */
 router.post("/generate", async function (req, res, next) {
   const { language, prompt } = req.body;
