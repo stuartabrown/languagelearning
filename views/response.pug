@@ -6,4 +6,42 @@ block content
   p Prompt: #{prompt}
   h3 Response:
   pre.bg-light.p-3.border.border-secondary.rounded #{response}
-  a.btn.btn-secondary(href="/") Back to Form
+
+  // Button to generate and play audio
+  button.btn.btn-primary(type="button", onclick=`playAudio(${JSON.stringify(response)})`) Play Audio
+
+  a.btn.btn-secondary(href=`/${username}/generate`) Back to Generate Form
+
+  // Pass the username to the client-side script
+  script.
+    const username = "#{username}";
+
+  // JavaScript for audio playback
+  script.
+    function playAudio(responseText) {
+      console.log("Play Audio button clicked. Sending request to generate audio...");
+      fetch(`/${username}/audio`, { // Use the correct route
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ responseText }),
+      })
+        .then(response => {
+          if (!response.ok) {
+            console.error("Failed to fetch audio:", response.statusText);
+            throw new Error('Failed to fetch audio');
+          }
+          return response.blob();
+        })
+        .then(blob => {
+          console.log("Audio fetched successfully. Playing audio...");
+          const audioUrl = URL.createObjectURL(blob);
+          const audio = new Audio(audioUrl);
+          audio.play();
+        })
+        .catch(error => {
+          console.error('Error playing audio:', error);
+          alert('Failed to play audio. Please try again.');
+        });
+    }

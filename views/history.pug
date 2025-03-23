@@ -17,15 +17,18 @@ block content
           th(scope="col") Prompt
           th(scope="col") Response
           th(scope="col") Date Created
+          th(scope="col") Actions
       tbody
         each content in history
           tr
             td #{content.language}
             td #{content.prompt}
             td #{content.response}
-            td #{new Date(content.timestamp).toLocaleDateString('en-GB')} 
+            td #{new Date(content.timestamp).toLocaleDateString('en-GB')}
+            td
+              button.btn.btn-primary.btn-sm(type="button", onclick=`playAudio('${content.response}')`) Play Audio
 
-  // JavaScript for filtering
+  // JavaScript for filtering and audio playback
   script.
     document.getElementById('filterInput').addEventListener('input', function() {
       const filter = this.value.toLowerCase();
@@ -36,5 +39,33 @@ block content
         row.style.display = matches ? '' : 'none';
       });
     });
+
+    function playAudio(responseText) {
+      console.log("Play Audio button clicked. Sending request to generate audio...");
+      fetch(window.location.pathname + '/audio', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ responseText }),
+      })
+        .then(response => {
+          if (!response.ok) {
+            console.error("Failed to fetch audio:", response.statusText);
+            throw new Error('Failed to fetch audio');
+          }
+          return response.blob();
+        })
+        .then(blob => {
+          console.log("Audio fetched successfully. Playing audio...");
+          const audioUrl = URL.createObjectURL(blob);
+          const audio = new Audio(audioUrl);
+          audio.play();
+        })
+        .catch(error => {
+          console.error('Error playing audio:', error);
+          alert('Failed to play audio. Please try again.');
+        });
+    }
 
     a(href="/") Back to Form
