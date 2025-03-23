@@ -1,15 +1,40 @@
 extends layout
 
 block content
-    h1=title
-    if history.length > 0
-      each item in history
-        div.history-item
-          p Language: #{item.language}
-          p Prompt: #{item.prompt}
-          p Response: #{item.response}
-          p Timestamp: #{item.timestamp}
-          hr
-    else
-      p No content generated yet.
+  h2 #{title}
+
+  // Filter input
+  div(class="mb-3")
+    label(for="filterInput" class="form-label") Filter Content
+    input#filterInput(type="text" class="form-control" placeholder="Type to filter...")
+
+  // Responsive table
+  div(class="table-responsive")
+    table(class="table table-striped table-bordered" id="contentTable")
+      thead
+        tr
+          th(scope="col") Language
+          th(scope="col") Prompt
+          th(scope="col") Response
+          th(scope="col") Date Created
+      tbody
+        each content in history
+          tr
+            td #{content.language}
+            td #{content.prompt}
+            td #{content.response}
+            td #{new Date(content.timestamp).toLocaleDateString('en-GB')} 
+
+  // JavaScript for filtering
+  script.
+    document.getElementById('filterInput').addEventListener('input', function() {
+      const filter = this.value.toLowerCase();
+      const rows = document.querySelectorAll('#contentTable tbody tr');
+      rows.forEach(row => {
+        const cells = Array.from(row.children);
+        const matches = cells.some(cell => cell.textContent.toLowerCase().includes(filter));
+        row.style.display = matches ? '' : 'none';
+      });
+    });
+
     a(href="/") Back to Form

@@ -29,14 +29,28 @@ router.get("/login", (req, res) => {
   res.render("login");
 });
 
-router.get("/:username", (req, res) => {
+router.get("/:username", async (req, res, next) => {
   const username = req.params.username;
+
+  // Ensure the user is logged in and the username matches
   if (!req.user || req.user.username !== username) {
-    // Prevent unauthorized access to other users' pages
-    return res.redirect("/users/login");
+    return res.redirect("/users/login"); // Redirect to login if unauthorized
   }
-  res.render("user", { username });
-}); // ... rest of your routes ...
+
+  try {
+    // Fetch content created by the specified username
+    const contentHistory = await Content.find({ "user.username": username }).sort({ timestamp: -1 });
+
+    // Render the history page with the filtered content
+    res.render("history", {
+      title: `${username}'s Content History`,
+      history: contentHistory,
+    });
+  } catch (error) {
+    console.error("Error getting content history:", error);
+    next(error); // Pass error to error handler
+  }
+});
 
 // GET /:username/generate - Render the generate form
 router.get("/:username/generate", (req, res) => {
