@@ -12,6 +12,7 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 require("dotenv").config();
 
 const indexRouter = require("./routes/index");
+const generateRouter = require("./routes/generate");
 
 const app = express();
 
@@ -47,17 +48,13 @@ app.use(
     cookie: { secure: process.env.NODE_ENV === "production" }, // Set cookie to secure in production
   })
 );
+
+// ... rest of your app.js code ...
 app.use(flash()); // Add this line to use connect-flash
 
 // Passport.js middleware (must be after mounting the usersRouter)
 app.use(passport.initialize());
 app.use(passport.session());
-
-app.use((req, res, next) => {
-  res.locals.user = req.user; // Make user available in res.locals
-  res.locals.messages = req.flash(); // Make flash messages available
-  next();
-});
 
 passport.use(
   new LocalStrategy(
@@ -92,7 +89,11 @@ passport.deserializeUser(async (id, done) => {
     done(error);
   }
 });
-
+app.use((req, res, next) => {
+  res.locals.user = req.user; // Make user available in res.locals
+  res.locals.messages = req.flash(); // Make flash messages available
+  next();
+});
 // Connect to MongoDB
 mongoose.connect(mongoDB, {
   useNewUrlParser: true,
@@ -122,7 +123,9 @@ app.use("/users", usersRouter); // Mount the users router at /users
 
 // --- Routes ---
 app.use("/", indexRouter);
+app.use("/generate", generateRouter); // Mount the generate router at /generate
 
+// ... other middleware ...
 // --- Error Handling ---
 app.use(function (req, res, next) {
   next(createError(404));
