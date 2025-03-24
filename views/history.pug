@@ -22,11 +22,12 @@ block content
         each content in history
           tr
             td #{content.language}
-            td #{content.prompt}
+            td
+              a(href=`/${content.user.username}/${content._id}`) #{content.prompt}
             td #{content.response}
             td #{new Date(content.timestamp).toLocaleDateString('en-GB')}
             td
-              button.btn.btn-primary.btn-sm(type="button", onclick=`playAudio('${content.response}')`) Play Audio
+              button.btn.btn-primary.btn-sm(type="button", onclick=`playAudio(${JSON.stringify(content.response)})`) Play Audio
 
   // JavaScript for filtering and audio playback
   script.

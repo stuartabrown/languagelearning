@@ -265,6 +265,35 @@ router.get("/history", async (req, res, next) => {
   }
 });
 
+// GET /:username/:contentId - Render a page with the details of a specific content
+router.get("/:username/:contentId", async (req, res, next) => {
+  const { username, contentId } = req.params;
+
+  // Ensure the user is logged in and the username matches
+  if (!req.user || req.user.username !== username) {
+    return res.redirect("/users/login"); // Redirect to login if unauthorized
+  }
+
+  try {
+    // Fetch the specific content by its ID
+    const content = await Content.findById(contentId);
+
+    if (!content) {
+      return res.status(404).send("Content not found");
+    }
+
+    // Render the content details page
+    res.render("content-details", {
+      title: "Content Details",
+      username,
+      content,
+    });
+  } catch (error) {
+    console.error("Error fetching content details:", error);
+    next(error); // Pass error to error handler
+  }
+});
+
 // Function to fetch and log available voices
 async function fetchAvailableVoices() {
   try {

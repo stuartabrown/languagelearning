@@ -1,0 +1,22 @@
+extends layout
+
+block content
+  h2 Content Details
+
+  p
+    strong Language:
+    | #{content.language}
+
+  p
+    strong Prompt:
+    | #{content.prompt}
+
+  p
+    strong Response:
+    | #{content.response}
+
+  p
+    strong Date Created:
+    | #{new Date(content.timestamp).toLocaleDateString('en-GB')}
+
+  a.btn.btn-secondary(href=`/${username}`) Back to History
