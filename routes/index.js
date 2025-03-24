@@ -307,6 +307,40 @@ router.get("/:username", async (req, res, next) => {
   }
 });
 
+router.get("/:username/:contentId", async (req, res, next) => {
+  const { username, contentId } = req.params;
+
+  // Ensure the user is logged in and the username matches
+  if (!req.user || req.user.username !== username) {
+    return res.status(403).send("Unauthorized");
+  }
+
+  try {
+    // Fetch the content by its ID
+    const content = await Content.findById(contentId);
+
+    // Ensure the content exists and belongs to the logged-in user
+    if (!content || content.user.username !== username) {
+      return res.status(404).send("Content not found");
+    }
+
+    // Check if the audio file exists
+    const audioFilePath = path.join(__dirname, "../public/audio", `${content._id}.mp3`);
+    const audioExists = fs.existsSync(audioFilePath);
+
+    // Render the content details page
+    res.render("content-details", {
+      title: "Content Details",
+      username,
+      content,
+      audioExists, // Pass audio existence flag to the template
+    });
+  } catch (error) {
+    console.error("Error fetching content details:", error);
+    next(error); // Pass the error to the error handler
+  }
+});
+
 // Function to fetch and log available voices
 async function fetchAvailableVoices() {
   try {

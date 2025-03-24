@@ -19,4 +19,11 @@ block content
     strong Date Created:
     | #{new Date(content.timestamp).toLocaleDateString('en-GB')}
 
+  if audioExists
+    p
+      strong Audio:
+    audio(controls)
+      source(src=`/audio/${content._id}.mp3` type="audio/mpeg")
+      p Your browser does not support the audio element.
+
   a.btn.btn-secondary(href=`/${username}`) Back to History

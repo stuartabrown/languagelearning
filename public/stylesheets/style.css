@@ -1,6 +1,9 @@
 body {
   font-family: sans-serif;
   margin: 20px;
+  background-color: #f8f9fa; /* Light background */
+  font-size: 16px; /* Default font size */
+  line-height: 1.5; /* Improve readability */
 }
 
 h1 {
@@ -55,4 +58,117 @@ a {
   border: 1px solid grey;
   padding: 10px;
   margin-bottom: 10px;
+}
+
+.navbar {
+  border-bottom: 2px solid #dee2e6; /* Add a border to the navbar */
+}
+
+/* Update the header background and text styles */
+header.p-3.bg-dark.text-white.text-center {
+  background-color: #f8f9fa; /* Light gray background */
+  color: #495057; /* Muted dark gray text */
+  border-bottom: 2px solid #dee2e6; /* Subtle border at the bottom */
+}
+
+header.p-3.bg-dark.text-white.text-center h1 {
+  color: #343a40; /* Darker gray for the heading */
+}
+
+header.p-3.bg-dark.text-white.text-center a.btn {
+  color: #ffffff; /* White text for buttons */
+  background-color: #6c757d; /* Muted gray button background */
+  border: none;
+}
+
+header.p-3.bg-dark.text-white.text-center a.btn:hover {
+  background-color: #5a6268; /* Darker gray on hover */
+}
+
+/* Update the navbar background and text styles */
+nav.navbar.navbar-expand-lg.navbar-dark.bg-dark {
+  background-color: #e9ecef; /* Light gray background */
+  border-bottom: 2px solid #dee2e6; /* Subtle border at the bottom */
+}
+
+nav.navbar.navbar-expand-lg.navbar-dark.bg-dark .navbar-brand a {
+  color: #495057; /* Muted dark gray for the brand link */
+  font-weight: bold;
+}
+
+nav.navbar.navbar-expand-lg.navbar-dark.bg-dark .navbar-nav .nav-link {
+  color: #495057; /* Muted dark gray for nav links */
+}
+
+nav.navbar.navbar-expand-lg.navbar-dark.bg-dark .navbar-nav .nav-link:hover {
+  color: #343a40; /* Darker gray on hover */
+}
+
+/* Ensure consistent button alignment in the navbar */
+.navbar-nav .btn {
+  margin-bottom: 0; /* Remove any vertical margin */
+  padding: 0.5rem 1rem; /* Adjust padding for better button size */
+  color: #212529; /* Darker text color */
+}
+
+.navbar-nav .btn:hover {
+  color: #000000; /* Black text on hover */
+}
+
+/* Ensure buttons and links have readable font sizes */
+.btn,
+.nav-link {
+  font-size: 16px; /* Minimum font size for buttons and links */
+}
+
+/* Improve contrast for light buttons */
+.btn-light {
+  color: #212529; /* Darker text color for better contrast */
+  background-color: #e9ecef; /* Slightly darker background */
+  border: 1px solid #ced4da; /* Add a border for better visibility */
+}
+
+.btn-light:hover {
+  background-color: #dee2e6; /* Darker hover background */
+  color: #212529; /* Ensure text remains dark */
+}
+
+/* Add a visible focus outline for buttons and links */
+.btn:focus,
+.nav-link:focus {
+  outline: 3px solid #0056b3; /* Blue outline for focus */
+  outline-offset: 2px;
+}
+
+/* Improve contrast for header text */
+header.p-3.text-white.text-center {
+  /* background-color: #f8f9fa; Light gray background */
+  color: #343a40; /* Darker gray text */
+}
+
+/* Improve contrast for navbar links */
+.navbar-nav .btn {
+  color: #212529; /* Darker text color */
+}
+
+.navbar-nav .btn:hover {
+  color: #000000; /* Black text on hover */
+}
+
+/* Increase padding for buttons */
+.btn {
+  padding: 10px 20px; /* Ensure a larger clickable area */
+}
+
+/* Increase padding for navbar links */
+.nav-link {
+  padding: 10px 15px; /* Ensure sufficient clickable area */
+}
+
+/* Update the table background color to a lighter shade */
+.table {
+  --bs-table-bg: #d8f3dc; /* Soft pastel green for the table background */
+  --bs-table-striped-bg: #b7e4c7; /* Slightly darker pastel green for striped rows */
+  --bs-table-hover-bg: #95d5b2; /* Muted green for hover effect */
+  --bs-table-border-color: #74c69d; /* Subtle green border color */
 }
