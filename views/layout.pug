@@ -10,28 +10,32 @@ html(lang="en")
     .container
       header.p-3.text-white.text-center(role="banner")
         h1 My Language Learning App
-        //- if user
-        //-   a.btn.btn-light(href=`/${user.username}/generate`) Generate Content
-        //-   a.btn.btn-light(href='/users/logout') Logout
-        //- else
-        //-   a.btn.btn-light(href='/users/login') Login
+        if user
+          a.btn.btn-light(href=`/${user.username}/generate`) Generate Content
+          a.btn.btn-light(href='/users/logout') Logout
+        else
+          a.btn.btn-light(href='/users/login') Login
 
       nav.navbar.navbar-expand-lg.navbar-dark(role="navigation")
         .container-fluid
           .navbar-brand
-            //- a(href="/") Language Learning
+            a(href="/") Language Learning
           button.navbar-toggler(type="button", data-bs-toggle="collapse", data-bs-target="#navbarNav", aria-controls="navbarNav", aria-expanded="false", aria-label="Toggle navigation")
             span.navbar-toggler-icon
           #navbarNav.collapse.navbar-collapse
             ul.navbar-nav.ms-auto.d-flex.align-items-center
               li.nav-item
                 a.btn.btn-light.me-2(href="/") Home
+              if user
+                li.nav-item
+                  a.btn.btn-light.me-2(href=`/${user.username}`) My Content
+                li.nav-item
+                  a.btn.btn-light.me-2(href=`/${user.username}/generate`) Generate Content
               li.nav-item
-                a.btn.btn-light.me-2(href="/admin/generate") Generate Content
-              li.nav-item
-                a.btn.btn-light.me-2(href="/history") History
-              li.nav-item
-                a.btn.btn-light(href="/users/logout") Logout
+                if user
+                  a.btn.btn-light(href="/users/logout") Logout
+                else
+                  a.btn.btn-light(href="/users/login") Login
 
       main.p-3(role="main")
         block content
