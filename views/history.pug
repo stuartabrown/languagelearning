@@ -32,9 +32,9 @@ block content
                   source(src=`/audio/${content._id}.mp3` type="audio/mpeg")
                   p Your browser does not support the audio element.
               else
-                p No audio available
+                button.btn.btn-secondary(type="button", onclick=`downloadAudio(${JSON.stringify(content.response)}, '${content._id}')`) Download Audio
 
-  // JavaScript for filtering
+  // JavaScript for filtering and downloading audio
   script.
     document.getElementById('filterInput').addEventListener('input', function() {
       const filter = this.value.toLowerCase();
@@ -46,4 +46,36 @@ block content
       });
     });
 
-    a(href="/") Back to Form
+    function downloadAudio(responseText, contentId) {
+      console.log("Download Audio button clicked. Sending request to generate audio...");
+      console.log("Response Text:", responseText);
+      console.log("Content ID:", contentId);
+
+      fetch(`/admin/download-audio`, { // Use the correct route
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ responseText, contentId }),
+      })
+        .then(response => {
+          if (!response.ok) {
+            console.error("Failed to fetch download URL:", response.statusText);
+            throw new Error('Failed to fetch download URL');
+          }
+          return response.json();
+        })
+        .then(data => {
+          console.log("Download URL received:", data.downloadUrl);
+          const link = document.createElement('a');
+          link.href = data.downloadUrl;
+          link.download = `${contentId}.mp3`; // Use the content ID as the filename
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        })
+        .catch(error => {
+          console.error('Error downloading audio:', error);
+          alert('Failed to download audio. Please try again.');
+        });
+    }

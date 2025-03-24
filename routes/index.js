@@ -195,9 +195,6 @@ router.post("/:username/download-audio", async (req, res, next) => {
 
   const { responseText, contentId } = req.body;
 
-  console.log("Received responseText:", responseText);
-  console.log("Received contentId:", contentId);
-
   if (!responseText || typeof responseText !== "string") {
     console.error("Invalid or missing responseText:", responseText);
     return res.status(400).json({ error: "Invalid or missing responseText" });
