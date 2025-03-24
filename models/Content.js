@@ -12,6 +12,7 @@ const ContentSchema = new Schema({
     username: { type: String, required: true }, // Store the username
     email: { type: String }, // Optionally store the email
   },
+  audioFile: { type: String }, // Reference to the audio file
 });
 
 module.exports = mongoose.model("Content", ContentSchema);

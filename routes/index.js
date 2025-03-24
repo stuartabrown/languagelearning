@@ -5,6 +5,8 @@ const Content = require("../models/Content");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const axios = require("axios");
 const stream = require("stream");
+const fs = require('fs');
+const path = require('path');
 require("dotenv").config();
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
@@ -100,7 +102,7 @@ router.post("/:username/generate", async (req, res, next) => {
         email: req.user.email || null, // Store the email (if available)
       },
     });
-    await newContent.save();
+    const savedContent = await newContent.save();
 
     // Render the response page with the audio button
     res.render("response", {
@@ -109,6 +111,7 @@ router.post("/:username/generate", async (req, res, next) => {
       language,
       prompt,
       response: responseText,
+      contentId: savedContent._id, // Pass the content ID to the template
     });
   } catch (error) {
     console.error("Error generating content:", error);
@@ -165,6 +168,83 @@ router.post("/:username/audio", async (req, res, next) => {
       "Error with ElevenLabs API:",
       error.response?.data || error.message
     );
+    res.status(500).json({
+      error: "Failed to generate audio",
+      details: error.response?.data || error.message,
+    });
+  }
+});
+
+router.post("/:username/download-audio", async (req, res, next) => {
+  const username = req.params.username;
+
+  // Ensure the user is logged in and the username matches
+  if (!req.user || req.user.username !== username) {
+    return res.status(403).json({ error: "Unauthorized" });
+  }
+
+  const { responseText, contentId } = req.body;
+
+  console.log("Received responseText:", responseText);
+  console.log("Received contentId:", contentId);
+
+  if (!responseText || typeof responseText !== "string") {
+    console.error("Invalid or missing responseText:", responseText);
+    return res.status(400).json({ error: "Invalid or missing responseText" });
+  }
+
+  if (!contentId || typeof contentId !== "string") {
+    console.error("Invalid or missing contentId:", contentId);
+    return res.status(400).json({ error: "Invalid or missing contentId" });
+  }
+
+  try {
+    console.log("Sending to ElevenLabs API for download:", { text: responseText });
+
+    // Replace with a valid voice ID from your ElevenLabs account
+    const voiceId = "9BWtsMINqrJLrRacOk9x";
+
+    const elevenLabsResponse = await axios.post(
+      `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}/stream`,
+      {
+        text: responseText,
+        voice_settings: {
+          stability: 0.75,
+          similarity_boost: 0.85,
+        },
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "xi-api-key": process.env.ELEVENLABS_API_KEY,
+        },
+        responseType: "stream", // Get the audio as a stream
+      }
+    );
+
+    // Use the content's ID as the filename
+    const filename = `${contentId}.mp3`;
+    const filepath = path.join(__dirname, '../public/audio', filename);
+
+    // Save the audio stream to a file
+    const writer = fs.createWriteStream(filepath);
+    elevenLabsResponse.data.pipe(writer);
+
+    writer.on('finish', async () => {
+      console.log(`Audio file saved: ${filepath}`);
+
+      // Update the content document in the database with the audio file reference
+      await Content.findByIdAndUpdate(contentId, { audioFile: filename });
+
+      res.json({ downloadUrl: `/audio/${filename}` });
+    });
+
+    writer.on('error', (error) => {
+      console.error("Error saving audio file:", error);
+      res.status(500).json({ error: "Failed to save audio file" });
+    });
+  } catch (error) {
+    console.error("Error with ElevenLabs API:", error.response?.data || error.message);
     res.status(500).json({
       error: "Failed to generate audio",
       details: error.response?.data || error.message,

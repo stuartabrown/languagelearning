@@ -118,6 +118,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
+app.use('/audio', express.static(path.join(__dirname, 'public/audio')));
 const usersRouter = require("./routes/users");
 app.use("/users", usersRouter); // Mount the users router at /users
 

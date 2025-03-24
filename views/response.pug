@@ -7,16 +7,16 @@ block content
   h3 Response:
   pre.bg-light.p-3.border.border-secondary.rounded #{response}
 
-  // Button to generate and play audio
+  // Buttons for playing and downloading audio
   button.btn.btn-primary(type="button", onclick=`playAudio(${JSON.stringify(response)})`) Play Audio
-
+  button.btn.btn-secondary(type="button", onclick=`downloadAudio(${JSON.stringify(response)}, '${contentId}')`) Download Audio
   a.btn.btn-secondary(href=`/${username}/generate`) Back to Generate Form
 
   // Pass the username to the client-side script
   script.
     const username = "#{username}";
 
-  // JavaScript for audio playback
+  // JavaScript for audio playback and download
   script.
     function playAudio(responseText) {
       console.log("Play Audio button clicked. Sending request to generate audio...");
@@ -43,5 +43,39 @@ block content
         .catch(error => {
           console.error('Error playing audio:', error);
           alert('Failed to play audio. Please try again.');
+        });
+    }
+
+    function downloadAudio(responseText, contentId) {
+      console.log("Download Audio button clicked. Sending request to generate audio...");
+      console.log("Response Text:", responseText);
+      console.log("Content ID:", contentId);
+
+      fetch(`/${username}/download-audio`, { // Use the correct route
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ responseText, contentId }),
+      })
+        .then(response => {
+          if (!response.ok) {
+            console.error("Failed to fetch download URL:", response.statusText);
+            throw new Error('Failed to fetch download URL');
+          }
+          return response.json();
+        })
+        .then(data => {
+          console.log("Download URL received:", data.downloadUrl);
+          const link = document.createElement('a');
+          link.href = data.downloadUrl;
+          link.download = `${contentId}.mp3`; // Use the content ID as the filename
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        })
+        .catch(error => {
+          console.error('Error downloading audio:', error);
+          alert('Failed to download audio. Please try again.');
         });
     }
