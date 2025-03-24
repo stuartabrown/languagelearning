@@ -47,10 +47,20 @@ router.get("/:username", async (req, res, next) => {
       "user.username": username,
     }).sort({ timestamp: -1 });
 
+    // Check if the audio file exists for each content item
+    const historyWithAudio = contentHistory.map(content => {
+      const audioFilePath = path.join(__dirname, '../public/audio', `${content._id}.mp3`);
+      const audioExists = fs.existsSync(audioFilePath);
+      return {
+        ...content.toObject(),
+        audioExists, // Add audio existence flag
+      };
+    });
+
     // Render the history page with the filtered content
     res.render("history", {
       title: `${username}'s Content History`,
-      history: contentHistory,
+      history: historyWithAudio,
     });
   } catch (error) {
     console.error("Error getting content history:", error);
