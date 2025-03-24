@@ -18,21 +18,7 @@ block content
           th(scope="col") Response
           th(scope="col") Date Created
           th(scope="col") Audio
-      tbody
-        each content in history
-          tr
-            td #{content.language}
-            td
-              a(href=`/${content.user.username}/${content._id}`) #{content.prompt}
-            td #{content.response}
-            td #{new Date(content.timestamp).toLocaleDateString('en-GB')}
-            td
-              if content.audioExists
-                audio(controls)
-                  source(src=`/audio/${content._id}.mp3` type="audio/mpeg")
-                  p Your browser does not support the audio element.
-              else
-                button.btn.btn-secondary(type="button", onclick=`downloadAudio(${JSON.stringify(content.response)}, '${content._id}')`) Download Audio
+      include partials/history-table-body
 
   // JavaScript for filtering and downloading audio
   script.
@@ -73,9 +59,48 @@ block content
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);
+
+          // Refresh the table after the file is downloaded
+          //- refreshTable();
         })
         .catch(error => {
           console.error('Error downloading audio:', error);
           alert('Failed to download audio. Please try again.');
+        });
+    }
+
+    function refreshTable() {
+      console.log("Refreshing table...");
+      const refreshUrl = `${window.location.pathname.replace(/\/$/, '')}/refresh`; // Remove trailing slash if it exists
+      fetch(refreshUrl) // Fetch updated table data
+        .then(response => {
+          if (!response.ok) {
+            console.error("Failed to refresh table:", response.statusText);
+            throw new Error('Failed to refresh table');
+          }
+          return response.text();
+        })
+        .then(html => {
+          console.log("Received HTML from server:", html); // Debugging log
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(html, 'text/html');
+          const newTableBody = doc.querySelector('#contentTable tbody');
+          const oldTableBody = document.querySelector('#contentTable tbody');
+
+          if (!newTableBody) {
+            console.error("New table body not found in server response.");
+            throw new Error("New table body not found in server response.");
+          }
+
+          if (!oldTableBody) {
+            console.error("Old table body not found in the DOM.");
+            throw new Error("Old table body not found in the DOM.");
+          }
+
+          oldTableBody.innerHTML = newTableBody.innerHTML; // Replace table body with updated content
+        })
+        .catch(error => {
+          console.error('Error refreshing table:', error);
+          alert('Failed to refresh table. Please try again.');
         });
     }

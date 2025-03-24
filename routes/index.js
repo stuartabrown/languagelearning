@@ -5,8 +5,8 @@ const Content = require("../models/Content");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const axios = require("axios");
 const stream = require("stream");
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 require("dotenv").config();
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
@@ -31,41 +31,6 @@ router.get("/register", (req, res) => {
 
 router.get("/login", (req, res) => {
   res.render("login");
-});
-
-router.get("/:username", async (req, res, next) => {
-  const username = req.params.username;
-
-  // Ensure the user is logged in and the username matches
-  if (!req.user || req.user.username !== username) {
-    return res.redirect("/users/login"); // Redirect to login if unauthorized
-  }
-
-  try {
-    // Fetch content created by the specified username
-    const contentHistory = await Content.find({
-      "user.username": username,
-    }).sort({ timestamp: -1 });
-
-    // Check if the audio file exists for each content item
-    const historyWithAudio = contentHistory.map(content => {
-      const audioFilePath = path.join(__dirname, '../public/audio', `${content._id}.mp3`);
-      const audioExists = fs.existsSync(audioFilePath);
-      return {
-        ...content.toObject(),
-        audioExists, // Add audio existence flag
-      };
-    });
-
-    // Render the history page with the filtered content
-    res.render("history", {
-      title: `${username}'s Content History`,
-      history: historyWithAudio,
-    });
-  } catch (error) {
-    console.error("Error getting content history:", error);
-    next(error); // Pass error to error handler
-  }
 });
 
 // GET /:username/generate - Render the generate form
@@ -206,7 +171,9 @@ router.post("/:username/download-audio", async (req, res, next) => {
   }
 
   try {
-    console.log("Sending to ElevenLabs API for download:", { text: responseText });
+    console.log("Sending to ElevenLabs API for download:", {
+      text: responseText,
+    });
 
     // Replace with a valid voice ID from your ElevenLabs account
     const voiceId = "9BWtsMINqrJLrRacOk9x";
@@ -231,13 +198,13 @@ router.post("/:username/download-audio", async (req, res, next) => {
 
     // Use the content's ID as the filename
     const filename = `${contentId}.mp3`;
-    const filepath = path.join(__dirname, '../public/audio', filename);
+    const filepath = path.join(__dirname, "../public/audio", filename);
 
     // Save the audio stream to a file
     const writer = fs.createWriteStream(filepath);
     elevenLabsResponse.data.pipe(writer);
 
-    writer.on('finish', async () => {
+    writer.on("finish", async () => {
       console.log(`Audio file saved: ${filepath}`);
 
       // Update the content document in the database with the audio file reference
@@ -246,12 +213,15 @@ router.post("/:username/download-audio", async (req, res, next) => {
       res.json({ downloadUrl: `/audio/${filename}` });
     });
 
-    writer.on('error', (error) => {
+    writer.on("error", (error) => {
       console.error("Error saving audio file:", error);
       res.status(500).json({ error: "Failed to save audio file" });
     });
   } catch (error) {
-    console.error("Error with ElevenLabs API:", error.response?.data || error.message);
+    console.error(
+      "Error with ElevenLabs API:",
+      error.response?.data || error.message
+    );
     res.status(500).json({
       error: "Failed to generate audio",
       details: error.response?.data || error.message,
@@ -259,22 +229,47 @@ router.post("/:username/download-audio", async (req, res, next) => {
   }
 });
 
-router.get("/history", async (req, res, next) => {
+router.get("/:username/refresh", async (req, res, next) => {
+  const username = req.params.username;
+
+  // Ensure the user is logged in and the username matches
+  if (!req.user || req.user.username !== username) {
+    return res.status(403).send("Unauthorized");
+  }
+
   try {
-    const contentHistory = await Content.find({}).sort({ timestamp: -1 });
-    res.render("history", {
-      title: "Content History",
-      history: contentHistory,
+    // Fetch content created by the specified username
+    const contentHistory = await Content.find({
+      "user.username": username,
+    }).sort({ timestamp: -1 });
+
+    // Check if the audio file exists for each content item
+    const historyWithAudio = contentHistory.map((content) => {
+      const audioFilePath = path.join(
+        __dirname,
+        "../public/audio",
+        `${content._id}.mp3`
+      );
+      const audioExists = fs.existsSync(audioFilePath);
+      return {
+        ...content.toObject(),
+        audioExists, // Add audio existence flag
+      };
     });
+
+    console.log("History with audio:", historyWithAudio); // Debugging log
+
+    // Render only the table body as HTML
+    res.render("partials/history-table-body", { history: historyWithAudio });
   } catch (error) {
-    console.error("Error getting content history:", error);
+    console.error("Error refreshing content history:", error);
     next(error); // Pass error to error handler
   }
 });
 
-// GET /:username/:contentId - Render a page with the details of a specific content
-router.get("/:username/:contentId", async (req, res, next) => {
-  const { username, contentId } = req.params;
+// Dynamic route for username
+router.get("/:username", async (req, res, next) => {
+  const username = req.params.username;
 
   // Ensure the user is logged in and the username matches
   if (!req.user || req.user.username !== username) {
@@ -282,21 +277,32 @@ router.get("/:username/:contentId", async (req, res, next) => {
   }
 
   try {
-    // Fetch the specific content by its ID
-    const content = await Content.findById(contentId);
+    // Fetch content created by the specified username
+    const contentHistory = await Content.find({
+      "user.username": username,
+    }).sort({ timestamp: -1 });
 
-    if (!content) {
-      return res.status(404).send("Content not found");
-    }
+    // Check if the audio file exists for each content item
+    const historyWithAudio = contentHistory.map((content) => {
+      const audioFilePath = path.join(
+        __dirname,
+        "../public/audio",
+        `${content._id}.mp3`
+      );
+      const audioExists = fs.existsSync(audioFilePath);
+      return {
+        ...content.toObject(),
+        audioExists, // Add audio existence flag
+      };
+    });
 
-    // Render the content details page
-    res.render("content-details", {
-      title: "Content Details",
-      username,
-      content,
+    // Render the history page with the filtered content
+    res.render("history", {
+      title: `${username}'s Content History`,
+      history: historyWithAudio,
     });
   } catch (error) {
-    console.error("Error fetching content details:", error);
+    console.error("Error getting content history:", error);
     next(error); // Pass error to error handler
   }
 });
