@@ -366,21 +366,12 @@ router.get("/:username/upload", (req, res) => {
 router.get("/:username/:contentId", async (req, res, next) => {
   const { username, contentId } = req.params;
 
-  // Ensure the user is logged in and the username matches
-  if (!req.user || req.user.username !== username) {
-    return res.status(403).send("Unauthorized");
-  }
-
   try {
-    // Fetch the content by its ID
     const content = await Content.findById(contentId);
 
-    // Ensure the content exists and belongs to the logged-in user
-    if (!content || content.user.username !== username) {
-      return res.status(404).send("Content not found");
-    }
+    console.log("Content Language:", content.language); // Debugging
+    console.log("Content Response:", content.response); // Debugging
 
-    // Check if the audio file exists
     const audioFilePath = path.join(
       __dirname,
       "../public/audio",
@@ -388,16 +379,15 @@ router.get("/:username/:contentId", async (req, res, next) => {
     );
     const audioExists = fs.existsSync(audioFilePath);
 
-    // Render the content details page
     res.render("content-details", {
       title: "Content Details",
       username,
       content,
-      audioExists, // Pass audio existence flag to the template
+      audioExists,
     });
   } catch (error) {
     console.error("Error fetching content details:", error);
-    next(error); // Pass the error to the error handler
+    next(error);
   }
 });
 

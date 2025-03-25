@@ -3,17 +3,37 @@ extends layout
 block content
   h2 Content Details
 
-  p
-    strong Language:
-    | #{content.language}
+  // Render language, native, and marked only if language is not null or undefined
+  if content.learning
+    p
+      strong Language:
+      | #{content.language}
+
+    p
+      strong Native:
+      | #{content.native || "N/A"} // Display native or "N/A" if null
+
+    p
+      strong Marked:
+      | #{content.marked || "N/A"} // Display marked or "N/A" if null
+
+  // Render response only if language is null or undefined
+  if !content.learning
+    p
+      strong Response:
+      | #{content.response || "N/A"} // Display response or "N/A" if null
 
   p
-    strong Prompt:
-    | #{content.prompt}
+    strong Theme:
+    | #{content.theme ? content.theme.join(", ") : "N/A"} // Display theme as a comma-separated list or "N/A"
 
   p
-    strong Response:
-    | #{content.response}
+    strong Type:
+    | #{content.type ? content.type.join(", ") : "N/A"} // Display type as a comma-separated list or "N/A"
+
+  p
+    strong Learning:
+    | #{content.learning || "N/A"} // Display learning or "N/A" if null
 
   p
     strong Date Created:
