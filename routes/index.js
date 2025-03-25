@@ -369,9 +369,6 @@ router.get("/:username/:contentId", async (req, res, next) => {
   try {
     const content = await Content.findById(contentId);
 
-    console.log("Content Language:", content.language); // Debugging
-    console.log("Content Response:", content.response); // Debugging
-
     const audioFilePath = path.join(
       __dirname,
       "../public/audio",
@@ -379,11 +376,25 @@ router.get("/:username/:contentId", async (req, res, next) => {
     );
     const audioExists = fs.existsSync(audioFilePath);
 
+    // Process content.marked to replace **word** with dropdowns
+    let processedMarked = content.marked;
+    if (content.marked) {
+      processedMarked = content.marked.replace(/\*\*(.*?)\*\*/g, (match, word) => {
+        return `
+          <select class="form-select" style="width: auto; display: inline-block;">
+            <option value="${word}">${word}</option>
+            <option value="foo">foo</option>
+          </select>
+        `;
+      });
+    }
+
     res.render("content-details", {
       title: "Content Details",
       username,
       content,
       audioExists,
+      processedMarked, // Pass the processed marked content
     });
   } catch (error) {
     console.error("Error fetching content details:", error);
@@ -447,5 +458,11 @@ async function fetchAvailableVoices() {
 
 // Call the function to fetch voices
 fetchAvailableVoices();
+
+router.post("/submit-marked", (req, res) => {
+  const { markedContent } = req.body;
+  console.log("Submitted Marked Content:", markedContent);
+  res.redirect("back"); // Redirect back to the previous page
+});
 
 module.exports = router;

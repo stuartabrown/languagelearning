@@ -4,7 +4,7 @@ block content
   h2 Content Details
 
   // Render language, native, and marked only if language is not null or undefined
-  if content.learning
+  if content.language
     p
       strong Language:
       | #{content.language}
@@ -13,15 +13,22 @@ block content
       strong Native:
       | #{content.native || "N/A"} // Display native or "N/A" if null
 
-    p
-      strong Marked:
-      | #{content.marked || "N/A"} // Display marked or "N/A" if null
+    // Wrap marked content in a form
+    if content.marked
+      form(method="POST", action="/submit-marked")
+        p
+          strong Marked:
+        div
+          // Render the processed marked content
+          != processedMarked
+        button.btn.btn-primary(type="submit") Submit Marked Content
 
-  // Render response only if language is null or undefined
-  if !content.learning
+  // Render learning content with dropdowns
+  if content.learning
     p
-      strong Response:
-      | #{content.response || "N/A"} // Display response or "N/A" if null
+      strong Learning:
+    div
+      != processedLearning 
 
   p
     strong Theme:
@@ -29,11 +36,7 @@ block content
 
   p
     strong Type:
-    | #{content.type ? content.type.join(", ") : "N/A"} // Display type as a comma-separated list or "N/A"
-
-  p
-    strong Learning:
-    | #{content.learning || "N/A"} // Display learning or "N/A" if null
+    | #{content.type ? content.type.join(", ") : "N/A"} // Display type as a comma-separated list or "N/A"}
 
   p
     strong Date Created:
