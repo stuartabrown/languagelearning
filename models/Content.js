@@ -15,6 +15,9 @@ const ContentSchema = new Schema({
   audioFile: { type: String }, // Reference to the audio file
   theme: [{ type: String }], // Array of strings for themes
   type: [{ type: String }], // Array of strings for types
+  marked: { type: String }, // New field for marked content
+  native: { type: String }, // New field for native language
+  learning: { type: String }, // New field for learning language
 });
 
 module.exports = mongoose.model("Content", ContentSchema);

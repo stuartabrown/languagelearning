@@ -60,11 +60,6 @@ router.post("/:username/generate", async (req, res, next) => {
 
   const { language, theme, type, prompt } = req.body;
 
-  if (!language) {
-    console.error("Language field is missing in the form submission.");
-    return res.status(400).send("Language is required.");
-  }
-
   try {
     console.log("Generating content with Google Gemini API...");
     console.log("Prompt:", prompt);
@@ -76,21 +71,45 @@ router.post("/:username/generate", async (req, res, next) => {
     // Check if the response is valid
     if (!result || !result.response) {
       console.error("No response received from Google Gemini API.");
-      return res
-        .status(500)
-        .send("Failed to generate content. Please try again.");
+      return res.status(500).send("Failed to generate content. Please try again.");
     }
 
     const responseText = result.response.text(); // Get the actual response text
     console.log("Response from Google Gemini API:", responseText);
 
+    // Debugging: Log the response text
+    console.log("Response Text:", responseText);
+
+    // Extract content within <marked>, <native>, and <learning> tags
+    const markedMatch = responseText.match(/<marked>([\s\S]*?)<\/marked>/);
+    const nativeMatch = responseText.match(/<native>([\s\S]*?)<\/native>/);
+    const learningMatch = responseText.match(/<learning>([\s\S]*?)<\/learning>/);
+
+    // Debugging: Log the extracted matches
+    console.log("Extracted Marked Match:", markedMatch);
+    console.log("Extracted Native Match:", nativeMatch);
+    console.log("Extracted Learning Match:", learningMatch);
+
+    // Extract the content or set to null if not found
+    const marked = markedMatch ? markedMatch[1].trim() : null;
+    const native = nativeMatch ? nativeMatch[1].trim() : null;
+    const learning = learningMatch ? learningMatch[1].trim() : null;
+
+    // Debugging: Log the extracted content
+    console.log("Extracted Marked Content:", marked);
+    console.log("Extracted Native Content:", native);
+    console.log("Extracted Learning Content:", learning);
+
     // Store the request and response in the database, including user details
     const newContent = new Content({
       language,
       prompt,
-      response: responseText, // Save the actual response
+      response: responseText, // Save the full response text
       theme: Array.isArray(theme) ? theme : [theme], // Ensure theme is an array
       type: Array.isArray(type) ? type : [type], // Ensure type is an array
+      marked, // Save extracted marked content
+      native, // Save extracted native content
+      learning, // Save extracted learning content
       user: {
         id: req.user._id, // Store the user's ID
         username: req.user.username, // Store the username
