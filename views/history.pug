@@ -16,7 +16,6 @@ block content
           th(scope="col") Language
           th(scope="col") Prompt
           th(scope="col") Response
-          th(scope="col") Learning
           th(scope="col") Date Created
           th(scope="col") Audio
       include partials/history-table-body
@@ -32,76 +31,3 @@ block content
         row.style.display = matches ? '' : 'none';
       });
     });
-
-    function downloadAudio(responseText, contentId) {
-      console.log("Download Audio button clicked. Sending request to generate audio...");
-      console.log("Response Text:", responseText);
-      console.log("Content ID:", contentId);
-
-      fetch(`/admin/download-audio`, { // Use the correct route
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ responseText, contentId }),
-      })
-        .then(response => {
-          if (!response.ok) {
-            console.error("Failed to fetch download URL:", response.statusText);
-            throw new Error('Failed to fetch download URL');
-          }
-          return response.json();
-        })
-        .then(data => {
-          console.log("Download URL received:", data.downloadUrl);
-          const link = document.createElement('a');
-          link.href = data.downloadUrl;
-          link.download = `${contentId}.mp3`; // Use the content ID as the filename
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-
-          // Refresh the table after the file is downloaded
-          //- refreshTable();
-        })
-        .catch(error => {
-          console.error('Error downloading audio:', error);
-          alert('Failed to download audio. Please try again.');
-        });
-    }
-
-    function refreshTable() {
-      console.log("Refreshing table...");
-      const refreshUrl = `${window.location.pathname.replace(/\/$/, '')}/refresh`; // Remove trailing slash if it exists
-      fetch(refreshUrl) // Fetch updated table data
-        .then(response => {
-          if (!response.ok) {
-            console.error("Failed to refresh table:", response.statusText);
-            throw new Error('Failed to refresh table');
-          }
-          return response.text();
-        })
-        .then(html => {
-          console.log("Received HTML from server:", html); // Debugging log
-          const parser = new DOMParser();
-          const doc = parser.parseFromString(html, 'text/html');
-          const newTableBody = doc.querySelector('#contentTable tbody');
-          const oldTableBody = document.querySelector('#contentTable tbody');
-
-          if (!newTableBody) {
-            console.error("New table body not found in server response.");
-            throw new Error("New table body not found in server response.");
-          }
-
-          if (!oldTableBody) {
-            console.error("Old table body not found in the DOM.");
-            throw new Error("Old table body not found in the DOM.");
-          }
-
-          oldTableBody.innerHTML = newTableBody.innerHTML; // Replace table body with updated content
-        })
-        .catch(error => {
-          console.error('Error refreshing table:', error);
-          alert('Failed to refresh table. Please try again.');
-        });
-    }
