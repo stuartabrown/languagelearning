@@ -1,11 +1,12 @@
-tbody
+tbody#contentTable
   each content in history
     tr
-      td #{content.language}
+      td #{content.language} // Display the language
       td
-        a(href=`/${content.user.username}/${content._id}`) #{content.prompt}
-      td #{content.response}
-      td #{new Date(content.timestamp).toLocaleDateString('en-GB')}
+        a(href=`/${content.user.username}/${content._id}`) #{content.prompt} // Link to content details
+      td #{content.response} // Display the response
+      td #{content.learning || 'N/A'} // Display the learning attribute or 'N/A' if null
+      td #{new Date(content.timestamp).toLocaleDateString('en-GB')} // Format the date
       td
         if content.audioExists
           audio(controls)
