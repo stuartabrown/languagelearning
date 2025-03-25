@@ -1,39 +1,50 @@
 extends layout
 
-//- block content
-//-   h2 Welcome #{username}.
-//-   p This is where you will generate content.
-
-//-   form(action=`/${username}/generate` method="POST")
-//-     label(for="language") Select Language:
-//-     select(name="language")
-//-       each language in languageOptions
-//-         option(value=language) #{language}
-//-     br
-//-     label(for="prompt") Enter Prompt:
-//-     textarea(name="prompt" required)
-//-     br
-//-     button(type="submit") Generate
-
-
-
-
-//- extends layout
-
 block content
-  h2 Generate Language Learning Content
-  form.needs-validation(method='POST', action=`/${username}/generate`, novalidate)
-    .mb-3
-      label.form-label(for="language") Language:
+  h2 Generate Content
+
+  form(method="POST", action=`/${username}/generate`)
+    div.mb-3
+      label(for="language" class="form-label") Language
       select.form-select(name="language", id="language", required)
         each language in languageOptions
-          option(value=language)= language
-      div.invalid-feedback Please select a language.
-    .mb-3
-      label.form-label(for="prompt") Prompt:
-      textarea.form-control(name="prompt", id="prompt", rows="5", required)
-      div.invalid-feedback Please enter a prompt.
-    button.btn.btn-primary(type="submit") Generate Content
+          option(value=language) #{language}
+
+    div.mb-3
+      label(for="theme" class="form-label") Theme
+      div.form-check.form-check-inline
+        input#theme-verb.form-check-input(type="checkbox", name="theme", value="Verb Conjugations")
+        label.form-check-label(for="theme-verb") Verb Conjugations
+      div.form-check.form-check-inline
+        input#theme-prepositions.form-check-input(type="checkbox", name="theme", value="Prepositions")
+        label.form-check-label(for="theme-prepositions") Prepositions
+      div.form-check.form-check-inline
+        input#theme-article.form-check-input(type="checkbox", name="theme", value="Definite Article")
+        label.form-check-label(for="theme-article") Definite Article
+
+    div.mb-3
+      label(for="type" class="form-label") Type
+      div.form-check.form-check-inline
+        input#type-qa.form-check-input(type="checkbox", name="type", value="Q&A")
+        label.form-check-label(for="type-qa") Q&A
+      div.form-check.form-check-inline
+        input#type-reading.form-check-input(type="checkbox", name="type", value="Reading")
+        label.form-check-label(for="type-reading") Reading
+      div.form-check.form-check-inline
+        input#type-writing.form-check-input(type="checkbox", name="type", value="Writing")
+        label.form-check-label(for="type-writing") Writing
+      div.form-check.form-check-inline
+        input#type-speaking.form-check-input(type="checkbox", name="type", value="Speaking")
+        label.form-check-label(for="type-speaking") Speaking
+      div.form-check.form-check-inline
+        input#type-listening.form-check-input(type="checkbox", name="type", value="Listening")
+        label.form-check-label(for="type-listening") Listening
+
+    div.mb-3
+      label(for="prompt" class="form-label") Prompt
+      textarea#prompt.form-control(name="prompt", rows="3", required)
+
+    button.btn.btn-primary(type="submit") Generate
     button.btn.btn-primary(type="button") Primary Button
     button.btn.btn-secondary(type="button") Secondary Button
     script.

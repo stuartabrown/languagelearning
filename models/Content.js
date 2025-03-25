@@ -13,6 +13,8 @@ const ContentSchema = new Schema({
     email: { type: String }, // Optionally store the email
   },
   audioFile: { type: String }, // Reference to the audio file
+  theme: [{ type: String }], // Array of strings for themes
+  type: [{ type: String }], // Array of strings for types
 });
 
 module.exports = mongoose.model("Content", ContentSchema);

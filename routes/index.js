@@ -58,39 +58,58 @@ router.post("/:username/generate", async (req, res, next) => {
     return res.redirect("/users/login"); // Redirect to login if unauthorized
   }
 
-  const { language, prompt } = req.body;
+  const { language, theme, type, prompt } = req.body;
+
+  if (!language) {
+    console.error("Language field is missing in the form submission.");
+    return res.status(400).send("Language is required.");
+  }
 
   try {
+    console.log("Generating content with Google Gemini API...");
+    console.log("Prompt:", prompt);
+
     // Interact with Google Gemini API
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro-002" });
     const result = await model.generateContent(prompt);
-    const responseText = result.response.text();
+
+    // Check if the response is valid
+    if (!result || !result.response) {
+      console.error("No response received from Google Gemini API.");
+      return res.status(500).send("Failed to generate content. Please try again.");
+    }
+
+    const responseText = result.response.text(); // Get the actual response text
+    console.log("Response from Google Gemini API:", responseText);
 
     // Store the request and response in the database, including user details
     const newContent = new Content({
       language,
       prompt,
-      response: responseText,
+      response: responseText, // Save the actual response
+      theme: Array.isArray(theme) ? theme : [theme], // Ensure theme is an array
+      type: Array.isArray(type) ? type : [type], // Ensure type is an array
       user: {
         id: req.user._id, // Store the user's ID
         username: req.user.username, // Store the username
         email: req.user.email || null, // Store the email (if available)
       },
     });
-    const savedContent = await newContent.save();
 
-    // Render the response page with the audio button
+    const savedContent = await newContent.save();
+    console.log("Content saved to the database:", savedContent);
+
+    // Render the response page with the generated content
     res.render("response", {
       title: "Generated Content",
       username,
-      language,
       prompt,
       response: responseText,
       contentId: savedContent._id, // Pass the content ID to the template
     });
   } catch (error) {
     console.error("Error generating content:", error);
-    next(error);
+    next(error); // Pass error to error handler
   }
 });
 
