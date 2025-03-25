@@ -58,11 +58,12 @@ block content
       dropdowns.forEach(dropdown => {
         dropdown.addEventListener('change', function () {
           const original = this.getAttribute('data-original');
+          const reason = this.getAttribute('data-reason');
           const selected = this.value;
           if (selected === original) {
-            alert('Correct!');
+            alert(`Correct! Selected: ${selected}, Original: ${original}, Reason: ${reason}`);
           } else {
-            alert('Incorrect!');
+            alert(`Incorrect! Selected: ${selected}, Original: ${original}, Reason: ${reason}`);
           }
         });
       });
