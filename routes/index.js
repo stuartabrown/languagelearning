@@ -376,24 +376,31 @@ router.get("/:username/:contentId", async (req, res, next) => {
     );
     const audioExists = fs.existsSync(audioFilePath);
 
-    // Process content.marked to replace **word** with dropdowns
+    // Process content.marked to replace **word** with dropdowns and handle [reason]
     let processedMarked = content.marked;
     if (content.marked) {
-      // Extract all unique words wrapped in double asterisks (**word**)
-      const matches = content.marked.match(/\*\*(.*?)\*\*/g); // Match all **word** patterns
-      const dropdownOptions = matches
-        ? [...new Set(matches.map((match) => match.slice(2, -2)))] // Remove ** and deduplicate
-        : [];
+      // Extract all **word** and [reason] matches
+      const wordMatches = [...content.marked.matchAll(/\*\*(.*?)\*\*/g)]; // Match all **word** patterns
+      const reasonMatches = [...content.marked.matchAll(/\[(.*?)\]/g)]; // Match all [reason] patterns
+
+      // Extract unique dropdown options from all **word** matches
+      const dropdownOptions = [...new Set(wordMatches.map((match) => match[1]))];
 
       // Replace **word** with dropdowns
+      let reasonIndex = 0; // Track the current reason index
       processedMarked = content.marked.replace(/\*\*(.*?)\*\*/g, (match, word) => {
-        const options = dropdownOptions
-          .map((option) => `<option value="${option}">${option}</option>`)
-          .join('');
+        // Get the corresponding reason for this word
+        const reason = reasonMatches[reasonIndex] ? reasonMatches[reasonIndex][1] : "";
+        reasonIndex++; // Move to the next reason
+
+        // Generate the dropdown HTML
         return `
-          <select class="form-select" style="width: auto; display: inline-block;" data-original="${word}">
-            ${options}
+          <select class="form-select" style="width: auto; display: inline-block;" data-original="${word}" data-reason="${reason}">
+            ${dropdownOptions
+              .map((option) => `<option value="${option}">${option}</option>`)
+              .join('')}
           </select>
+          ${reason ? `<span class="reason-text"> [${reason}]</span>` : ""}
         `;
       });
     }
