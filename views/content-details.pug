@@ -4,7 +4,7 @@ block content
   h2 Content Details
 
   // Render language, native, and marked only if language is not null or undefined
-  if content.language
+  if content.learning
     p
       strong Language:
       | #{content.language}
@@ -50,3 +50,20 @@ block content
       p Your browser does not support the audio element.
 
   a.btn.btn-secondary(href=`/${username}`) Back to History
+
+  // Add JavaScript for validation
+  script.
+    document.addEventListener('DOMContentLoaded', function () {
+      const dropdowns = document.querySelectorAll('select[data-original]');
+      dropdowns.forEach(dropdown => {
+        dropdown.addEventListener('change', function () {
+          const original = this.getAttribute('data-original');
+          const selected = this.value;
+          if (selected === original) {
+            alert('Correct!');
+          } else {
+            alert('Incorrect!');
+          }
+        });
+      });
+    });

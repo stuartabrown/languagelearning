@@ -391,7 +391,7 @@ router.get("/:username/:contentId", async (req, res, next) => {
           .map((option) => `<option value="${option}">${option}</option>`)
           .join('');
         return `
-          <select class="form-select" style="width: auto; display: inline-block;">
+          <select class="form-select" style="width: auto; display: inline-block;" data-original="${word}">
             ${options}
           </select>
         `;
