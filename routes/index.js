@@ -370,8 +370,19 @@ router.get("/:username/upload", (req, res) => {
 router.get("/:username/:contentId", async (req, res, next) => {
   const { username, contentId } = req.params;
 
+  // Ensure the user is logged in
+  if (!req.user) {
+    return res.redirect("/users/login"); // Redirect to login if not authenticated
+  }
+
   try {
+    // Fetch the content by ID
     const content = await Content.findById(contentId);
+
+    // Check if the content exists and if the logged-in user is the creator
+    if (!content || content.user.username !== req.user.username) {
+      return res.status(403).send("Forbidden: You do not have access to this content.");
+    }
 
     const audioFilePath = path.join(
       __dirname,
@@ -379,6 +390,9 @@ router.get("/:username/:contentId", async (req, res, next) => {
       `${content._id}.mp3`
     );
     const audioExists = fs.existsSync(audioFilePath);
+
+    // Ensure learning falls back to response if it is null or undefined
+    const learningContent = content.learning || content.response;
 
     // Process content.marked to replace **word** with dropdowns and handle [reason]
     let processedMarked = content.marked;
@@ -388,41 +402,34 @@ router.get("/:username/:contentId", async (req, res, next) => {
       const reasonMatches = [...content.marked.matchAll(/\[(.*?)\]/g)]; // Match all [reason] patterns
 
       // Extract unique dropdown options from all **word** matches
-      const dropdownOptions = [
-        ...new Set(wordMatches.map((match) => match[1])),
-      ];
+      const dropdownOptions = [...new Set(wordMatches.map((match) => match[1]))];
 
       // Replace **word** with dropdowns
       let reasonIndex = 0; // Track the current reason index
-      processedMarked = content.marked.replace(
-        /\*\*(.*?)\*\*/g,
-        (match, word) => {
-          // Get the corresponding reason for this word
-          let reason = "";
-          if (reasonMatches[reasonIndex]) {
-            reason = reasonMatches[reasonIndex][1];
-            reasonIndex++; // Increment the reason index only if a reason is used
-          }
+      processedMarked = content.marked.replace(/\*\*(.*?)\*\*/g, (match, word) => {
+        // Get the corresponding reason for this word
+        let reason = "";
+        if (reasonIndex < reasonMatches.length && reasonMatches[reasonIndex]) {
+          reason = reasonMatches[reasonIndex][1];
+          reasonIndex++; // Increment the reason index only if a reason is used
+        }
 
-          // Safely encode the reason to handle special characters
-          const encodedReason = reason
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#39;");
+        // Safely encode the reason to handle special characters
+        const encodedReason = reason.replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 
-          // Set the data-original value to only the word in double asterisks
-          const dataOriginal = word;
+        // Set the data-original value to only the word in double asterisks
+        const dataOriginal = word;
 
-          // Generate the dropdown HTML
-          return `
+        // Generate the dropdown HTML
+        return `
           <select class="form-select" style="width: auto; display: inline-block;" data-original="${dataOriginal}" data-reason="${encodedReason}">
             ${dropdownOptions
               .map((option) => `<option value="${option}">${option}</option>`)
-              .join("")}
+              .join('')}
           </select>
           ${reason ? `<span class="reason-text">[${reason}]</span>` : ""}
         `;
-        }
-      );
+      });
 
       // Remove all [reason] text from the visible content to avoid duplication
       processedMarked = processedMarked.replace(/\[(.*?)\]/g, "");
@@ -434,10 +441,11 @@ router.get("/:username/:contentId", async (req, res, next) => {
       content,
       audioExists,
       processedMarked, // Pass the processed marked content
+      processedLearning: learningContent, // Pass the learning content (fallback to response if null)
     });
   } catch (error) {
     console.error("Error fetching content details:", error);
-    next(error);
+    next(error); // Pass error to error handler
   }
 });
 
