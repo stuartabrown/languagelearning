@@ -71,7 +71,9 @@ router.post("/:username/generate", async (req, res, next) => {
     // Check if the response is valid
     if (!result || !result.response) {
       console.error("No response received from Google Gemini API.");
-      return res.status(500).send("Failed to generate content. Please try again.");
+      return res
+        .status(500)
+        .send("Failed to generate content. Please try again.");
     }
 
     const responseText = result.response.text(); // Get the actual response text
@@ -83,7 +85,9 @@ router.post("/:username/generate", async (req, res, next) => {
     // Extract content within <marked>, <native>, and <learning> tags
     const markedMatch = responseText.match(/<marked>([\s\S]*?)<\/marked>/);
     const nativeMatch = responseText.match(/<native>([\s\S]*?)<\/native>/);
-    const learningMatch = responseText.match(/<learning>([\s\S]*?)<\/learning>/);
+    const learningMatch = responseText.match(
+      /<learning>([\s\S]*?)<\/learning>/
+    );
 
     // Debugging: Log the extracted matches
     console.log("Extracted Marked Match:", markedMatch);
@@ -384,25 +388,44 @@ router.get("/:username/:contentId", async (req, res, next) => {
       const reasonMatches = [...content.marked.matchAll(/\[(.*?)\]/g)]; // Match all [reason] patterns
 
       // Extract unique dropdown options from all **word** matches
-      const dropdownOptions = [...new Set(wordMatches.map((match) => match[1]))];
+      const dropdownOptions = [
+        ...new Set(wordMatches.map((match) => match[1])),
+      ];
 
       // Replace **word** with dropdowns
       let reasonIndex = 0; // Track the current reason index
-      processedMarked = content.marked.replace(/\*\*(.*?)\*\*/g, (match, word) => {
-        // Get the corresponding reason for this word
-        const reason = reasonMatches[reasonIndex] ? reasonMatches[reasonIndex][1] : "";
-        reasonIndex++; // Move to the next reason
+      processedMarked = content.marked.replace(
+        /\*\*(.*?)\*\*/g,
+        (match, word) => {
+          // Get the corresponding reason for this word
+          let reason = "";
+          if (reasonMatches[reasonIndex]) {
+            reason = reasonMatches[reasonIndex][1];
+            reasonIndex++; // Increment the reason index only if a reason is used
+          }
 
-        // Generate the dropdown HTML
-        return `
-          <select class="form-select" style="width: auto; display: inline-block;" data-original="${word}" data-reason="${reason}">
+          // Safely encode the reason to handle special characters
+          const encodedReason = reason
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#39;");
+
+          // Set the data-original value to only the word in double asterisks
+          const dataOriginal = word;
+
+          // Generate the dropdown HTML
+          return `
+          <select class="form-select" style="width: auto; display: inline-block;" data-original="${dataOriginal}" data-reason="${encodedReason}">
             ${dropdownOptions
               .map((option) => `<option value="${option}">${option}</option>`)
-              .join('')}
+              .join("")}
           </select>
-          ${reason ? `<span class="reason-text"> [${reason}]</span>` : ""}
+          ${reason ? `<span class="reason-text">[${reason}]</span>` : ""}
         `;
-      });
+        }
+      );
+
+      // Remove all [reason] text from the visible content to avoid duplication
+      processedMarked = processedMarked.replace(/\[(.*?)\]/g, "");
     }
 
     res.render("content-details", {
