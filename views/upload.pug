@@ -1,0 +1,51 @@
+extends layout
+
+block content
+  h2 Upload Your Content
+
+  form(method="POST", action=`/${username}/upload`)
+    div.mb-3
+      label(for="language" class="form-label") Language
+      select.form-select(name="language", id="language", required)
+        each language in languageOptions
+          option(value=language) #{language}
+
+    div.mb-3
+      label(for="theme" class="form-label") Theme
+      div.form-check.form-check-inline
+        input#theme-verb.form-check-input(type="checkbox", name="theme", value="Verb Conjugations")
+        label.form-check-label(for="theme-verb") Verb Conjugations
+      div.form-check.form-check-inline
+        input#theme-prepositions.form-check-input(type="checkbox", name="theme", value="Prepositions")
+        label.form-check-label(for="theme-prepositions") Prepositions
+      div.form-check.form-check-inline
+        input#theme-article.form-check-input(type="checkbox", name="theme", value="Definite Article")
+        label.form-check-label(for="theme-article") Definite Article
+
+    div.mb-3
+      label(for="type" class="form-label") Type
+      div.form-check.form-check-inline
+        input#type-qa.form-check-input(type="checkbox", name="type", value="Q&A")
+        label.form-check-label(for="type-qa") Q&A
+      div.form-check.form-check-inline
+        input#type-reading.form-check-input(type="checkbox", name="type", value="Reading")
+        label.form-check-label(for="type-reading") Reading
+      div.form-check.form-check-inline
+        input#type-writing.form-check-input(type="checkbox", name="type", value="Writing")
+        label.form-check-label(for="type-writing") Writing
+      div.form-check.form-check-inline
+        input#type-speaking.form-check-input(type="checkbox", name="type", value="Speaking")
+        label.form-check-label(for="type-speaking") Speaking
+      div.form-check.form-check-inline
+        input#type-listening.form-check-input(type="checkbox", name="type", value="Listening")
+        label.form-check-label(for="type-listening") Listening
+
+    div.mb-3
+      label(for="prompt" class="form-label") Prompt
+      textarea#prompt.form-control(name="prompt", rows="3", required)
+
+    div.mb-3
+      label(for="response" class="form-label") Response
+      textarea#response.form-control(name="response", rows="5", required)
+
+    button.btn.btn-primary(type="submit") Save Content

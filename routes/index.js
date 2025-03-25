@@ -76,7 +76,9 @@ router.post("/:username/generate", async (req, res, next) => {
     // Check if the response is valid
     if (!result || !result.response) {
       console.error("No response received from Google Gemini API.");
-      return res.status(500).send("Failed to generate content. Please try again.");
+      return res
+        .status(500)
+        .send("Failed to generate content. Please try again.");
     }
 
     const responseText = result.response.text(); // Get the actual response text
@@ -326,6 +328,22 @@ router.get("/:username", async (req, res, next) => {
   }
 });
 
+// GET /:username/upload - Render the upload form
+router.get("/:username/upload", (req, res) => {
+  const username = req.params.username;
+
+  // Ensure the user is logged in and the username matches
+  if (!req.user || req.user.username !== username) {
+    return res.redirect("/users/login"); // Redirect to login if unauthorized
+  }
+
+  // Render the upload form with language options
+  res.render("upload", {
+    username,
+    languageOptions: ["English", "Italian", "French"], // Add more languages as needed
+  });
+});
+
 router.get("/:username/:contentId", async (req, res, next) => {
   const { username, contentId } = req.params;
 
@@ -344,7 +362,11 @@ router.get("/:username/:contentId", async (req, res, next) => {
     }
 
     // Check if the audio file exists
-    const audioFilePath = path.join(__dirname, "../public/audio", `${content._id}.mp3`);
+    const audioFilePath = path.join(
+      __dirname,
+      "../public/audio",
+      `${content._id}.mp3`
+    );
     const audioExists = fs.existsSync(audioFilePath);
 
     // Render the content details page
@@ -357,6 +379,43 @@ router.get("/:username/:contentId", async (req, res, next) => {
   } catch (error) {
     console.error("Error fetching content details:", error);
     next(error); // Pass the error to the error handler
+  }
+});
+
+// POST /:username/upload - Handle form submission and save user-provided content
+router.post("/:username/upload", async (req, res, next) => {
+  const username = req.params.username;
+
+  // Ensure the user is logged in and the username matches
+  if (!req.user || req.user.username !== username) {
+    return res.redirect("/users/login"); // Redirect to login if unauthorized
+  }
+
+  const { language, theme, type, prompt, response } = req.body;
+
+  try {
+    // Save the user-provided content to the database
+    const newContent = new Content({
+      language,
+      prompt,
+      response, // Save the user-provided response
+      theme: Array.isArray(theme) ? theme : [theme], // Ensure theme is an array
+      type: Array.isArray(type) ? type : [type], // Ensure type is an array
+      user: {
+        id: req.user._id, // Store the user's ID
+        username: req.user.username, // Store the username
+        email: req.user.email || null, // Store the email (if available)
+      },
+    });
+
+    const savedContent = await newContent.save();
+    console.log("User-provided content saved to the database:", savedContent);
+
+    // Redirect to the user's content page
+    res.redirect(`/${username}`);
+  } catch (error) {
+    console.error("Error saving user-provided content:", error);
+    next(error); // Pass error to error handler
   }
 });
 
