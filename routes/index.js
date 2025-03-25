@@ -379,11 +379,20 @@ router.get("/:username/:contentId", async (req, res, next) => {
     // Process content.marked to replace **word** with dropdowns
     let processedMarked = content.marked;
     if (content.marked) {
+      // Extract all unique words wrapped in double asterisks (**word**)
+      const matches = content.marked.match(/\*\*(.*?)\*\*/g); // Match all **word** patterns
+      const dropdownOptions = matches
+        ? [...new Set(matches.map((match) => match.slice(2, -2)))] // Remove ** and deduplicate
+        : [];
+
+      // Replace **word** with dropdowns
       processedMarked = content.marked.replace(/\*\*(.*?)\*\*/g, (match, word) => {
+        const options = dropdownOptions
+          .map((option) => `<option value="${option}">${option}</option>`)
+          .join('');
         return `
           <select class="form-select" style="width: auto; display: inline-block;">
-            <option value="${word}">${word}</option>
-            <option value="foo">foo</option>
+            ${options}
           </select>
         `;
       });
