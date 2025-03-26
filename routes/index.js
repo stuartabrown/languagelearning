@@ -273,6 +273,54 @@ router.post("/:username/download-audio", async (req, res, next) => {
   }
 });
 
+router.post("/:contentId/download-audio", async (req, res) => {
+  const { contentId } = req.params;
+  const { learningText } = req.body;
+
+  if (!learningText || typeof learningText !== "string") {
+    return res.status(400).json({ error: "Invalid or missing learning content" });
+  }
+
+  try {
+    const voiceId = "9BWtsMINqrJLrRacOk9x"; // Replace with your ElevenLabs voice ID
+    const elevenLabsResponse = await axios.post(
+      `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}/stream`,
+      {
+        text: learningText,
+        voice_settings: {
+          stability: 0.75,
+          similarity_boost: 0.85,
+        },
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "xi-api-key": process.env.ELEVENLABS_API_KEY,
+        },
+        responseType: "stream",
+      }
+    );
+
+    const filename = `${contentId}.mp3`;
+    const filepath = path.join(__dirname, "../public/audio", filename);
+
+    const writer = fs.createWriteStream(filepath);
+    elevenLabsResponse.data.pipe(writer);
+
+    writer.on("finish", () => {
+      res.json({ downloadUrl: `/audio/${filename}` });
+    });
+
+    writer.on("error", (error) => {
+      console.error("Error saving audio file:", error);
+      res.status(500).json({ error: "Failed to save audio file" });
+    });
+  } catch (error) {
+    console.error("Error with ElevenLabs API:", error.message);
+    res.status(500).json({ error: "Failed to generate audio" });
+  }
+});
+
 router.get("/:username/refresh", async (req, res, next) => {
   const username = req.params.username;
 

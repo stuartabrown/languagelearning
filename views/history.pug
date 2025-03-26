@@ -31,3 +31,30 @@ block content
         row.style.display = matches ? '' : 'none';
       });
     });
+
+    async function downloadAudio(learningText, contentId) {
+      try {
+        const response = await fetch(`/${contentId}/download-audio`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ learningText }),
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch download URL");
+        }
+
+        const data = await response.json();
+        const link = document.createElement("a");
+        link.href = data.downloadUrl;
+        link.download = `${contentId}.mp3`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } catch (error) {
+        console.error("Error downloading audio:", error);
+        alert("Failed to download audio. Please try again.");
+      }
+    }
