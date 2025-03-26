@@ -9,7 +9,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 // Language options for the dropdown
 const languageOptions = ["English", "Italian", "French"];
 
-// Middleware to check if user is authenticated
+// updaed Middleware to check if user is authenticated
 const isLoggedIn = (req, res, next) => {
   if (req.isAuthenticated()) {
     return next();
@@ -25,7 +25,7 @@ router.post("/", isLoggedIn, async (req, res, next) => {
   const { language, prompt } = req.body;
 
   try {
-    const model = genAI.getGenerativeModel({ model: "text-bison-001" }); // Or another suitable model
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" });
     const result = await model.generateContent(prompt);
     const responseText = result.response.text();
 
