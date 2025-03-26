@@ -1,24 +1,24 @@
 tbody#contentTable
   each content in history
     tr
-      td #{content.language} // Display the language
+      td #{content.language}
       td
-        a(href=`/${content.user.username}/${content._id}`) #{content.prompt} // Link to content details
+        a(href=`/${content.user.username}/${content._id}`) #{content.prompt}
       td
         if content.learning
-          span #{content.learning} // Use the learning content if it exists
+          span #{content.learning}
         else
-          span #{content.response} // Otherwise, use the response content
+          span #{content.response}
       td #{new Date(content.timestamp).toLocaleDateString('en-GB')} 
       td
         if content.audioExists
           audio(controls)
             source(src=`/audio/${content._id}.mp3` type="audio/mpeg")
             p Your browser does not support the audio element.
-        else if content.learning
+        else if content.learning || content.response
           button.btn.btn-secondary(
             type="button",
-            onclick=`downloadAudio('${content.learning.replace(/'/g, "\\'").replace(/\n/g, ' ')}', '${content._id}')`
+            onclick=`downloadAudio('${(content.learning || content.response).replace(/'/g, "\\'").replace(/\n/g, ' ')}', '${content._id}')`
           ) Download Audio
         else
-          button.btn.btn-secondary(type="button" disabled) No Learning Content
+          button.btn.btn-secondary(type="button" disabled) No Content Available
