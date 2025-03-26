@@ -18,7 +18,7 @@ tbody#contentTable
         else if content.learning || content.response
           button.btn.btn-secondary(
             type="button",
-            onclick=`downloadAudio('${(content.learning || content.response).replace(/'/g, "\\'").replace(/\n/g, ' ')}', '${content._id}')`
+            onclick=`downloadAudio('${(content.learning || content.response).replace(/'/g, "\\'").replace(/\n/g, ' ')}', '${content._id}', username)`
           ) Download Audio
         else
           button.btn.btn-secondary(type="button" disabled) No Content Available

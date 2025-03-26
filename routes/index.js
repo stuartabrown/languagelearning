@@ -36,6 +36,9 @@ router.get("/login", (req, res) => {
 // GET /:username/generate - Render the generate form
 router.get("/:username/generate", (req, res) => {
   const username = req.params.username;
+  console.log("IN THE generate FUNCTION");
+  console.log("OBJ " + JSON.stringify(req.params));
+  console.log("HERE IS REQ PARAMS USERNAME" + req.params.username);
 
   // Ensure the user is logged in and the username matches
   if (!req.user || req.user.username !== username) {
@@ -127,7 +130,8 @@ router.post("/:username/generate", async (req, res, next) => {
     // Render the response page with the generated content
     res.render("response", {
       title: "Generated Content",
-      username,
+      username, // Ensure this is passed
+      language,
       prompt,
       response: responseText,
       contentId: savedContent._id, // Pass the content ID to the template
@@ -194,11 +198,18 @@ router.post("/:username/audio", async (req, res, next) => {
   }
 });
 
-router.post("/:username/download-audio", async (req, res, next) => {
+router.post("/:username/download-audio", async (req, res) => {
+  console.log("IN THE FUNCTION");
+  console.log("OBJ " + JSON.stringify(req.params));
   const username = req.params.username;
+  console.log("HERE IS REQ PARAMS USERNAME" + req.params.username);
 
   // Ensure the user is logged in and the username matches
   if (!req.user || req.user.username !== username) {
+    console.error("Unauthorized access attempt:", {
+      loggedInUser: req.user?.username,
+      requestedUsername: username,
+    });
     return res.status(403).json({ error: "Unauthorized" });
   }
 
@@ -219,9 +230,7 @@ router.post("/:username/download-audio", async (req, res, next) => {
       text: responseText,
     });
 
-    // Replace with a valid voice ID from your ElevenLabs account
-    const voiceId = "9BWtsMINqrJLrRacOk9x";
-
+    const voiceId = "9BWtsMINqrJLrRacOk9x"; // Replace with your ElevenLabs voice ID
     const elevenLabsResponse = await axios.post(
       `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}/stream`,
       {
@@ -236,26 +245,16 @@ router.post("/:username/download-audio", async (req, res, next) => {
           "Content-Type": "application/json",
           "xi-api-key": process.env.ELEVENLABS_API_KEY,
         },
-        responseType: "stream", // Get the audio as a stream
+        responseType: "stream",
       }
     );
 
-    // Debugging: Log the ElevenLabs API response
     console.log("ElevenLabs API Response Status:", elevenLabsResponse.status);
     console.log("ElevenLabs API Response Headers:", elevenLabsResponse.headers);
 
-    // If the response includes data, log it (useful for debugging errors)
-    if (elevenLabsResponse.data) {
-      console.log(
-        "ElevenLabs API Response Data (Stream): Received audio stream"
-      );
-    }
-
-    // Use the content's ID as the filename
     const filename = `${contentId}.mp3`;
     const filepath = path.join(__dirname, "../public/audio", filename);
 
-    // Save the audio stream to a file
     const writer = fs.createWriteStream(filepath);
     elevenLabsResponse.data.pipe(writer);
 
@@ -273,7 +272,6 @@ router.post("/:username/download-audio", async (req, res, next) => {
       res.status(500).json({ error: "Failed to save audio file" });
     });
   } catch (error) {
-    // Debugging: Log the error details
     console.error("Error with ElevenLabs API:", error.message);
     if (error.response) {
       console.error("ElevenLabs API Error Status:", error.response.status);
@@ -425,6 +423,7 @@ router.get("/:username", async (req, res, next) => {
     res.render("history", {
       title: `${username}'s Content History`,
       history: historyWithAudio,
+      username, // Pass the username to the template
     });
   } catch (error) {
     console.error("Error getting content history:", error);
