@@ -240,6 +240,17 @@ router.post("/:username/download-audio", async (req, res, next) => {
       }
     );
 
+    // Debugging: Log the ElevenLabs API response
+    console.log("ElevenLabs API Response Status:", elevenLabsResponse.status);
+    console.log("ElevenLabs API Response Headers:", elevenLabsResponse.headers);
+
+    // If the response includes data, log it (useful for debugging errors)
+    if (elevenLabsResponse.data) {
+      console.log(
+        "ElevenLabs API Response Data (Stream): Received audio stream"
+      );
+    }
+
     // Use the content's ID as the filename
     const filename = `${contentId}.mp3`;
     const filepath = path.join(__dirname, "../public/audio", filename);
@@ -262,10 +273,13 @@ router.post("/:username/download-audio", async (req, res, next) => {
       res.status(500).json({ error: "Failed to save audio file" });
     });
   } catch (error) {
-    console.error(
-      "Error with ElevenLabs API:",
-      error.response?.data || error.message
-    );
+    // Debugging: Log the error details
+    console.error("Error with ElevenLabs API:", error.message);
+    if (error.response) {
+      console.error("ElevenLabs API Error Status:", error.response.status);
+      console.error("ElevenLabs API Error Headers:", error.response.headers);
+      console.error("ElevenLabs API Error Data:", error.response.data);
+    }
     res.status(500).json({
       error: "Failed to generate audio",
       details: error.response?.data || error.message,
@@ -277,11 +291,18 @@ router.post("/:contentId/download-audio", async (req, res) => {
   const { contentId } = req.params;
   const { learningText } = req.body;
 
+  console.log("Received request to /:contentId/download-audio");
+  console.log("Content ID:", contentId);
+  console.log("Learning Text:", learningText);
+
   if (!learningText || typeof learningText !== "string") {
-    return res.status(400).json({ error: "Invalid or missing learning content" });
+    console.error("Invalid or missing learningText:", learningText);
+    return res.status(400).json({ error: "Invalid or missing learningText" });
   }
 
   try {
+    console.log("Sending to ElevenLabs API:", { text: learningText });
+
     const voiceId = "9BWtsMINqrJLrRacOk9x"; // Replace with your ElevenLabs voice ID
     const elevenLabsResponse = await axios.post(
       `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}/stream`,
@@ -301,6 +322,9 @@ router.post("/:contentId/download-audio", async (req, res) => {
       }
     );
 
+    console.log("ElevenLabs API Response Status:", elevenLabsResponse.status);
+    console.log("ElevenLabs API Response Headers:", elevenLabsResponse.headers);
+
     const filename = `${contentId}.mp3`;
     const filepath = path.join(__dirname, "../public/audio", filename);
 
@@ -308,6 +332,7 @@ router.post("/:contentId/download-audio", async (req, res) => {
     elevenLabsResponse.data.pipe(writer);
 
     writer.on("finish", () => {
+      console.log(`Audio file saved: ${filepath}`);
       res.json({ downloadUrl: `/audio/${filename}` });
     });
 
@@ -317,7 +342,15 @@ router.post("/:contentId/download-audio", async (req, res) => {
     });
   } catch (error) {
     console.error("Error with ElevenLabs API:", error.message);
-    res.status(500).json({ error: "Failed to generate audio" });
+    if (error.response) {
+      console.error("ElevenLabs API Error Status:", error.response.status);
+      console.error("ElevenLabs API Error Headers:", error.response.headers);
+      console.error("ElevenLabs API Error Data:", error.response.data);
+    }
+    res.status(500).json({
+      error: "Failed to generate audio",
+      details: error.response?.data || error.message,
+    });
   }
 });
 
@@ -429,7 +462,9 @@ router.get("/:username/:contentId", async (req, res, next) => {
 
     // Check if the content exists and if the logged-in user is the creator
     if (!content || content.user.username !== req.user.username) {
-      return res.status(403).send("Forbidden: You do not have access to this content.");
+      return res
+        .status(403)
+        .send("Forbidden: You do not have access to this content.");
     }
 
     const audioFilePath = path.join(
@@ -450,34 +485,44 @@ router.get("/:username/:contentId", async (req, res, next) => {
       const reasonMatches = [...content.marked.matchAll(/\[(.*?)\]/g)]; // Match all [reason] patterns
 
       // Extract unique dropdown options from all **word** matches
-      const dropdownOptions = [...new Set(wordMatches.map((match) => match[1]))];
+      const dropdownOptions = [
+        ...new Set(wordMatches.map((match) => match[1])),
+      ];
 
       // Replace **word** with dropdowns
       let reasonIndex = 0; // Track the current reason index
-      processedMarked = content.marked.replace(/\*\*(.*?)\*\*/g, (match, word) => {
-        // Get the corresponding reason for this word
-        let reason = "";
-        if (reasonIndex < reasonMatches.length && reasonMatches[reasonIndex]) {
-          reason = reasonMatches[reasonIndex][1];
-          reasonIndex++; // Increment the reason index only if a reason is used
-        }
+      processedMarked = content.marked.replace(
+        /\*\*(.*?)\*\*/g,
+        (match, word) => {
+          // Get the corresponding reason for this word
+          let reason = "";
+          if (
+            reasonIndex < reasonMatches.length &&
+            reasonMatches[reasonIndex]
+          ) {
+            reason = reasonMatches[reasonIndex][1];
+            reasonIndex++; // Increment the reason index only if a reason is used
+          }
 
-        // Safely encode the reason to handle special characters
-        const encodedReason = reason.replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+          // Safely encode the reason to handle special characters
+          const encodedReason = reason
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#39;");
 
-        // Set the data-original value to only the word in double asterisks
-        const dataOriginal = word;
+          // Set the data-original value to only the word in double asterisks
+          const dataOriginal = word;
 
-        // Generate the dropdown HTML
-        return `
+          // Generate the dropdown HTML
+          return `
           <select class="form-select" style="width: auto; display: inline-block;" data-original="${dataOriginal}" data-reason="${encodedReason}">
             ${dropdownOptions
               .map((option) => `<option value="${option}">${option}</option>`)
-              .join('')}
+              .join("")}
           </select>
           ${reason ? `<span class="reason-text">[${reason}]</span>` : ""}
         `;
-      });
+        }
+      );
 
       // Remove all [reason] text from the visible content to avoid duplication
       processedMarked = processedMarked.replace(/\[(.*?)\]/g, "");

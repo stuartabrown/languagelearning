@@ -32,29 +32,39 @@ block content
       });
     });
 
-    async function downloadAudio(learningText, contentId) {
-      try {
-        const response = await fetch(`/${contentId}/download-audio`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ learningText }),
+    function downloadAudio(learningText, contentId) {
+      console.log("Download Audio button clicked. Sending request to generate audio...");
+      console.log("Response Text:", learningText);
+      console.log("Content ID:", contentId);
+
+      fetch(`/:username/download-audio`, { // Use the correct route
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ learningText, contentId }),
+      })
+        .then(response => {
+          if (!response.ok) {
+            console.error("Failed to fetch download URL:", response.statusText);
+            throw new Error('Failed to fetch download URL');
+          }
+          return response.json();
+        })
+        .then(data => {
+          console.log("Download URL received:", data.downloadUrl);
+          const link = document.createElement('a');
+          link.href = data.downloadUrl;
+          link.download = `${contentId}.mp3`; // Use the content ID as the filename
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+
+          // Refresh the table after the file is downloaded
+          //- refreshTable();
+        })
+        .catch(error => {
+          console.error('Error downloading audio:', error);
+          alert('Failed to download audio. Please try again.');
         });
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch download URL");
-        }
-
-        const data = await response.json();
-        const link = document.createElement("a");
-        link.href = data.downloadUrl;
-        link.download = `${contentId}.mp3`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      } catch (error) {
-        console.error("Error downloading audio:", error);
-        alert("Failed to download audio. Please try again.");
-      }
     }
